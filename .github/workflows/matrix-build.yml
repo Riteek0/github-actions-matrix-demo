@@ -1,0 +1,54 @@
+# This workflow demonstrates a matrix build with artifact uploads
+name: Matrix Build Demo
+
+# Trigger the workflow on every push to the main branch
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  build:
+    # Run jobs on the latest Ubuntu runner
+    runs-on: ubuntu-latest
+    
+    # Define the matrix strategy
+    strategy:
+      fail-fast: false # Don't cancel other jobs if one fails
+      matrix:
+        # Define 3 variants for the build
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+      # Step 1: Check out the repository's code
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up the specific Node.js version for this matrix job
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      # Step 3: A step with the required identifier
+      - name: Display Node.js version
+        id: matrix-356a016 # The required step identifier
+        run: |
+          echo "Building with Node.js version: ${{ matrix.node-version }}"
+          node -v
+
+      # Step 4: Generate a unique build artifact for this job
+      - name: Generate build artifact
+        run: |
+          echo "This is the build output for Node ${{ matrix.node-version }}." > build-log.txt
+          echo "Generated on $(date)" >> build-log.txt
+
+      # Step 5: Upload the unique artifact
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          # Name the artifact with the required prefix and variant
+          name: build-356a016-node${{ matrix.node-version }}
+          # Path to the file to upload
+          path: build-log.txt
